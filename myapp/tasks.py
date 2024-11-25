@@ -1,5 +1,6 @@
-"""
+from huey.contrib.djhuey import task
 
+"""
 #from huey import periodic_task, crontab
 from datetime import timedelta
 #from myapp.models import TaskModel  # модель ваших задач
@@ -22,3 +23,8 @@ def long_running_task():
     time.sleep(10)  # Например, задержка 10 секунд
     print("Task finished!")
 """
+
+@task()
+def count_beans() -> str:
+    print('-- counted %s beans --!!!!!!!!!!!!!!!!!!!!!!!')
+    return 'Success!'

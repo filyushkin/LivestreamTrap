@@ -10,8 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import logging
 from pathlib import Path
-from huey import SqliteHuey
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -38,22 +38,23 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'huey.contrib.djhuey',
     'myapp',
-    #'django_huey',
-    #'huey.contrib.django',
 ]
 
 #INSTALLED_APPS += ['django_huey']
 
-HUEY = SqliteHuey('tasks.db')
-"""
 HUEY = {
-    'huey_class': 'huey.RedisHuey',  # Или другой тип Huey, например, Redis
-    'result_store': True,             # Для хранения результатов задач
-    'store_none': False,              # Не хранить None как результат
-    'immediate': False,               # Задачи выполняются асинхронно
+    'huey_class': 'huey.SqliteHuey',  # Используем SqliteHuey
+    'name': 'my_app',                 # Название задачи, любое имя
+    'filename': 'huey_tasks.db',       # Имя файла базы данных SQLite
+    'immediate': False,                # immediate=False для фоновой обработки задач
+    'consumer': {
+        'workers': 2,                  # Количество воркеров
+        'worker_type': 'thread',       # Тип воркеров
+    },
 }
-"""
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
