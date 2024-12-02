@@ -41,11 +41,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'huey.contrib.djhuey',
     'myapp',
-    'django_huey',
 ]
 
-#INSTALLED_APPS += ['django_huey']
-"""
 HUEY = {
     'huey_class': 'huey.SqliteHuey',  # Используем SqliteHuey
     'name': 'my_app',                 # Название задачи, любое имя
@@ -58,7 +55,7 @@ HUEY = {
 }
 """
 HUEY = {
-    'HUEY_IMPORTS': ('myapp.tasks',),  # Импорт задач из вашего приложения
+   'HUEY_IMPORTS': ('myapp.tasks',),  # Импорт задач из вашего приложения
    'HUEY_CONNECTION': {
         'name': 'huey.db',  # Имя базы данных для хранения задач
         'type': 'sqlite',  # Используем SQLite вместо Redis
@@ -67,11 +64,7 @@ HUEY = {
     'HUEY_RESULT_EXPIRES': 3600,  # Время хранения результата задачи
     'HUEY_MAX_TASKS': 16,  # Максимальное количество задач}
 }
-
-
-
-
-
+"""
 
 
 MIDDLEWARE = [
@@ -165,3 +158,4 @@ STATIC_ROOT = '/home/filyushkin/LivestreamTrap/static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = '/home/filyushkin/LivestreamTrap/media/'
 
+API_KEY = 'AIzaSyAdH-dstx0tnYHBKLG2BjrCRqmAV46AHyg'
