@@ -4,7 +4,10 @@ from django.shortcuts import render
 from googleapiclient.discovery import build
 import huey
 from django.http import JsonResponse
-#from .tasks import my_minutely_task 
+#from .tasks import my_periodic_task
+from django.http import HttpResponse
+from .forms import MyModelForm
+from .tasks import my_periodic_task
 
 from .models import MyModel
 
@@ -41,7 +44,21 @@ def my_view(request):
             if 'button_3' in request.POST:                
                 #youtube_url = message  # Укажите URL текущего стрима
                 #record_stream(youtube_url, quality='audio_only')
-                my_minutely_task()
+                interval = int(form.cleaned_data['interval'])
+            
+                # Устанавливаем периодическую задачу в зависимости от выбранного интервала
+                if interval == 15:
+                    my_periodic_task.schedule(args=(), interval=900)  # Каждые 15 минут (900 секунд)
+                elif interval == 30:
+                    my_periodic_task.schedule(args=(), interval=1800)  # Каждые 30 минут (1800 секунд)
+                elif interval == 60:
+                    my_periodic_task.schedule(args=(), interval=3600)  # Каждый час (3600 секунд)
+                elif interval == 120:
+                    my_periodic_task.schedule(args=(), interval=7200)  # Каждые 2 часа (7200 секунд)
+                
+                return HttpResponse("Задача была запланирована!")
+                
+                
     else:
         form = MyModelForm()
     

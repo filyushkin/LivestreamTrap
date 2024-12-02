@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 import logging
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -40,10 +41,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'huey.contrib.djhuey',
     'myapp',
+    'django_huey',
 ]
 
 #INSTALLED_APPS += ['django_huey']
-
+"""
 HUEY = {
     'huey_class': 'huey.SqliteHuey',  # Используем SqliteHuey
     'name': 'my_app',                 # Название задачи, любое имя
@@ -54,6 +56,23 @@ HUEY = {
         'worker_type': 'thread',       # Тип воркеров
     },
 }
+"""
+HUEY = {
+    'HUEY_IMPORTS': ('myapp.tasks',),  # Импорт задач из вашего приложения
+   'HUEY_CONNECTION': {
+        'name': 'huey.db',  # Имя базы данных для хранения задач
+        'type': 'sqlite',  # Используем SQLite вместо Redis
+    },
+    'HUEY_RESULT_STORE': True,  # Сохранять результаты выполнения задач
+    'HUEY_RESULT_EXPIRES': 3600,  # Время хранения результата задачи
+    'HUEY_MAX_TASKS': 16,  # Максимальное количество задач}
+}
+
+
+
+
+
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

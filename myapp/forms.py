@@ -32,16 +32,24 @@ class MyModelForm(forms.ModelForm):
         widget=forms.Textarea(attrs={'rows': 4, 'cols': 40})  # Текстовое поле
     )
     """
-    dropdown_field = forms.ChoiceField(
+    dropdown_field = forms.ChoiceField( # interval
         label='Частота проверки:',
         choices=[
-            ('option1', 'Раз в 15 минут'),
-            ('option2', 'Раз в 30 минут'),
-            ('option3', 'Раз в 1 час'),
-            ('option4', 'Раз в 2 часа'),
-            #('option5', 'Option 5'),
+            (15, 'Раз в 15 минут'),
+            (30, 'Раз в 30 минут'),
+            (60, 'Раз в 1 час'),
+            (120, 'Раз в 2 часа'),
         ]
     )
+    """
+    INTERVAL_CHOICES = [
+        (15, 'Каждые 15 минут'),
+        (30, 'Каждые 30 минут'),
+        (60, 'Каждый час'),
+        (120, 'Каждые 2 часа'),
+    ]
+    interval = forms.ChoiceField(choices=INTERVAL_CHOICES, widget=forms.Select)
+    """
     """
     button_2 = forms.CharField(
     widget=forms.HiddenInput(),  # Скрытый input для кнопки
