@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'huey.contrib.djhuey',
     'myapp',
-    'django_huey',
+    #'django_huey',
 ]
 
 #INSTALLED_APPS += ['django_huey']

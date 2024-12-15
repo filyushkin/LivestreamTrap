@@ -2,8 +2,8 @@ from huey.contrib.djhuey import task
 from huey import crontab
 #from .huey import huey
 from time import sleep
-from django_huey import huey
-from .views import get_live_stream
+#from django_huey import huey
+#from .views import get_live_stream
 
 """
 """
