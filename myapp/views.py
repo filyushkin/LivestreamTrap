@@ -1,12 +1,9 @@
 import requests
 import subprocess
 from django.shortcuts import render
-from googleapiclient.discovery import build
-import huey
-from django.http import JsonResponse
-#from .tasks import my_periodic_task
 from django.http import HttpResponse
-from .forms import MyModelForm
+
+from .services import get_live_stream
 from .tasks import my_periodic_task
 
 from .models import MyModel
@@ -15,7 +12,8 @@ from .models import MyModel
 
 from .forms import MyModelForm
 
-API_KEY = 'AIzaSyAdH-dstx0tnYHBKLG2BjrCRqmAV46AHyg'  # Замените на ваш API ключ
+API_KEY = 'AIzaSyAdH-dstx0tnYHBKLG2BjrCRqmAV46AHyg'
+
 
 def my_view(request):
     channel_name = ''
@@ -75,6 +73,7 @@ def my_view(request):
 
 def tasks(request):
     return render(request, 'myapp/tasks_template.html')
+
 
 def downloads(request):
     return render(request, 'myapp/downloads_template.html')
@@ -139,36 +138,6 @@ def get_channel_id(channel_name, api_key):
     else:
         return f"Ошибка при выполнении запроса: {response.status_code}"
 
-
-
-def get_live_stream(channel_id, api_key):
-    # URL для поиска трансляций на YouTube
-    url = "https://www.googleapis.com/youtube/v3/search"
-    
-    # Параметры запроса
-    params = {
-        'part': 'snippet',
-        'channelId': channel_id,
-        'eventType': 'live',  # Ищем только текущие трансляции
-        'type': 'video',      # Тип контента - видео
-        'key': api_key
-    }
-
-    # Отправляем GET-запрос к YouTube Data API
-    response = requests.get(url, params=params)
-
-    if response.status_code == 200:
-        data = response.json()
-        # Проверяем, есть ли трансляция в ответе
-        if 'items' in data and len(data['items']) > 0:
-            video_id = data['items'][0]['id']['videoId']
-            # Формируем ссылку на трансляцию
-            live_url = f"https://www.youtube.com/watch?v={video_id}"
-            return live_url
-        else:
-            return "Нет текущих трансляций на данном канале."
-    else:
-        return f"Ошибка при выполнении запроса: {response.status_code}"
 
 def record_stream(youtube_url, quality='best'):
     # Команда для записи текущего стрима с помощью ytarchive
