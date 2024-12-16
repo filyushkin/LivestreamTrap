@@ -1,10 +1,11 @@
 import requests
 import subprocess
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
+from django.http import JsonResponse
 
 from .services import get_live_stream
-from .tasks import my_periodic_task
+from .tasks import periodic_task #, periodic_task_function
 
 from .models import MyModel
 
@@ -14,13 +15,18 @@ from .forms import MyModelForm
 
 API_KEY = 'AIzaSyAdH-dstx0tnYHBKLG2BjrCRqmAV46AHyg'
 
+# Глобальная переменная для контроля начала выполнения задач
+task_started = False
 
-def my_view(request):
+def main(request):
+    #form = MyModelForm #
     channel_name = ''
     message = ''
     tasks = ''
     
     if request.method == 'POST':
+        #print(request.POST.get('dropdown_field'))
+        #form = MyModelForm(request.POST) #
         
         tasks = MyModel.objects.all()
         
@@ -31,6 +37,7 @@ def my_view(request):
                 channel_handle = form.cleaned_data['text_string_1']
                 #channel_name, message = check_channel_exists(channel_handle)
                 message = check_youtube_channel_exists(channel_handle, API_KEY)
+                #message = "Button_1 pressed"
                 #channel_name, message = check_youtube_channel_exists(channel_handle, API_KEY)
             #form.save()
             #return redirect('success')  # Замените на нужный URL
@@ -42,19 +49,23 @@ def my_view(request):
             if 'button_3' in request.POST:                
                 #youtube_url = message  # Укажите URL текущего стрима
                 #record_stream(youtube_url, quality='audio_only')
-                interval = int(form.cleaned_data['interval'])
-            
-                # Устанавливаем периодическую задачу в зависимости от выбранного интервала
-                if interval == 15:
-                    my_periodic_task.schedule(args=(), interval=900)  # Каждые 15 минут (900 секунд)
-                elif interval == 30:
-                    my_periodic_task.schedule(args=(), interval=1800)  # Каждые 30 минут (1800 секунд)
-                elif interval == 60:
-                    my_periodic_task.schedule(args=(), interval=3600)  # Каждый час (3600 секунд)
-                elif interval == 120:
-                    my_periodic_task.schedule(args=(), interval=7200)  # Каждые 2 часа (7200 секунд)
+                #interval = int(form.cleaned_data['interval'])
+                #global task_started
+                #task_started = True  # Устанавливаем флаг на True, чтобы задачи начали выполняться
+                #periodic_task_function.apply_async()  # Запускаем задачу вручную, если нужно               
+                name = request.POST.get('name')
+                interval = int(request.POST.get('interval'))  # Получаем значение интервала из формы или данных
+
+                # Создаем новую запись
+                my_model_instance = MyModel.objects.create(name=name, interval=interval)
+                my_model_instance.save()
                 
-                return HttpResponse("Задача была запланирована!")
+                #model_instance = form.save()  # Сохраняем экземпляр MyModel в базе данных
+                # Запускаем задачу
+                periodic_task(model_instance.id)
+                
+                return redirect('task_list')            
+                #return HttpResponse("Задача была запланирована!")
                 
                 
     else:
@@ -69,6 +80,15 @@ def my_view(request):
         'subtitle': "Создать задачу на запись всех стримов с YouTube.",
         'tasks': tasks,
     })
+
+
+def start_task(request):
+    global task_started
+    task_started = True  # Устанавливаем флаг на True, чтобы задачи начали выполняться
+    periodic_task_function.apply_async()  # Запускаем задачу вручную, если нужно
+
+    return JsonResponse({"status": "Задача началась, она будет выполняться каждые 10 секунд."})
+
 
 
 def tasks(request):

@@ -42,29 +42,28 @@ INSTALLED_APPS = [
     'huey.contrib.djhuey',
     'myapp',
 ]
+"""
+HUEY = {
+    'huey_class': 'huey.SqliteHuey',  # Используем SQLite для хранения задач
+    'filename': 'huey.db',  # Указываем имя файла базы данных SQLite
+    'results': True,  # Включаем сохранение результатов задач
+    #'blocking': True,  # Синхронный режим (для простоты)
+    'immediate': False,        # Отключаем режим immediate
+}
+"""
 
 HUEY = {
-    'huey_class': 'huey.SqliteHuey',  # Используем SqliteHuey
-    'name': 'my_app',                 # Название задачи, любое имя
-    'filename': 'huey_tasks.db',       # Имя файла базы данных SQLite
-    'immediate': False,                # immediate=False для фоновой обработки задач
-    'consumer': {
-        'workers': 2,                  # Количество воркеров
-        'worker_type': 'thread',       # Тип воркеров
-    },
+    'huey_class': 'huey.SqliteHuey',  # Класс использования SQLite для Huey
+    'name': 'myapp_huey',  # Имя очереди задач
+    'store_none': False,  # Не сохранять задачи с результатом None
+    'results': True,  # Сохранять результаты выполнения задач
+    #'connection': {
+    #    'url': 'sqlite:///db.sqlite3',  # Строка подключения для SQLite
+    #},
+    #'connection': 'sqlite:///db.sqlite3',  # Строка подключения для SQLite
+    'immediate': False,  # Отключить немедленное выполнение задач
 }
-"""
-HUEY = {
-   'HUEY_IMPORTS': ('myapp.tasks',),  # Импорт задач из вашего приложения
-   'HUEY_CONNECTION': {
-        'name': 'huey.db',  # Имя базы данных для хранения задач
-        'type': 'sqlite',  # Используем SQLite вместо Redis
-    },
-    'HUEY_RESULT_STORE': True,  # Сохранять результаты выполнения задач
-    'HUEY_RESULT_EXPIRES': 3600,  # Время хранения результата задачи
-    'HUEY_MAX_TASKS': 16,  # Максимальное количество задач}
-}
-"""
+
 
 
 MIDDLEWARE = [

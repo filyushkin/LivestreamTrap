@@ -12,7 +12,8 @@
     <button type="submit" name="button_2">Проверить, есть ли текущая трансляция</button><br>
     <br>
     <br>
-    {{ form.interval.label }} {{ form.interval }}<br>
+    <label for="{{ form.dropdown_field.id_for_label }}">{{ form.dropdown_field.label }}</label>
+    {{ form.dropdown_field }}
     <br>
     <button type="submit" name="button_3">Создать задачу</button><br>
 {% endblock %}
