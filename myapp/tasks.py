@@ -1,12 +1,4 @@
-from datetime import datetime
-import time
-from huey.contrib.djhuey import periodic_task, task
-from huey import crontab
-#from .huey import huey
-#from time import sleep
-#from django_huey import huey
-#from .views import get_live_stream
-from myapp.services import get_live_stream
+from huey.contrib.djhuey import task
 from django.utils import timezone
 from .models import MyModel
 
@@ -15,8 +7,8 @@ from .models import MyModel
 task_started = False
 
 
-@task
-def periodic_task(task_id):
+@task()
+def my_periodic_task(task_id):
     task = MyModel.objects.get(id=task_id)
     task.last_run = timezone.now()
     task.save()

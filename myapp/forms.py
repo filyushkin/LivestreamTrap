@@ -19,8 +19,8 @@ class MyModelForm(forms.ModelForm):
         (60, 'Раз в 1 час'),
         (120, 'Раз в 2 часа'),
     ]
-    
-    dropdown_field = forms.ChoiceField(
+
+    interval = forms.ChoiceField(
         choices=CHOICES,
         label="Частота проверки:",
         required=False
@@ -31,7 +31,7 @@ class MyModelForm(forms.ModelForm):
         model = MyModel
         #fields = ['text_string_1', 'dropdown_field']
         fields = ['text_string_1', 'interval']
-        
+
     def __init__(self, *args, **kwargs):
         super(MyModelForm, self).__init__(*args, **kwargs)
         # Устанавливаем значение по умолчанию для interval, если оно не передано

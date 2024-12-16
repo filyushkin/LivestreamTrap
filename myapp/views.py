@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 
 from .services import get_live_stream
-from .tasks import periodic_task #, periodic_task_function
+from .tasks import my_periodic_task
 
 from .models import MyModel
 
@@ -17,6 +17,7 @@ API_KEY = 'AIzaSyAdH-dstx0tnYHBKLG2BjrCRqmAV46AHyg'
 
 # Глобальная переменная для контроля начала выполнения задач
 task_started = False
+
 
 def main(request):
     #form = MyModelForm #
@@ -62,12 +63,10 @@ def main(request):
                 
                 #model_instance = form.save()  # Сохраняем экземпляр MyModel в базе данных
                 # Запускаем задачу
-                periodic_task(model_instance.id)
+                my_periodic_task(my_model_instance.id)
                 
-                return redirect('task_list')            
+                return redirect('tasks')
                 #return HttpResponse("Задача была запланирована!")
-                
-                
     else:
         form = MyModelForm()
     
