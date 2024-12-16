@@ -17,8 +17,8 @@ python manage.py migrate
 ```
 
 ```commandline
-python manage.py makemigrations transactions
-python manage.py sqlmigrate transactions 0004
+python manage.py makemigrations myapp
+python manage.py sqlmigrate myapp 0001
 ```
 
 ## Create Super User

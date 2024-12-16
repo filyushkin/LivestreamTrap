@@ -22,7 +22,7 @@ class MyModel(models.Model):
     #last_run = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     
     def __str__(self):
-        return self.name
+        return self.name or 'None'
 
 """
 class MyModel(models.Model):

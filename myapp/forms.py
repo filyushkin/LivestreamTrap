@@ -2,7 +2,7 @@ from django import forms
 from .models import MyModel
 
 class MyModelForm(forms.ModelForm):
-    text_string_1 = forms.CharField(
+    name = forms.CharField(
         label='Псевдоним канала:',
         initial='reuters',  # Текстовая строка с заданным текстом
         widget=forms.TextInput(attrs={'placeholder': 'Введите текст здесь'}),
@@ -30,7 +30,7 @@ class MyModelForm(forms.ModelForm):
     class Meta:
         model = MyModel
         #fields = ['text_string_1', 'dropdown_field']
-        fields = ['text_string_1', 'interval']
+        fields = ['name', 'interval']
 
     def __init__(self, *args, **kwargs):
         super(MyModelForm, self).__init__(*args, **kwargs)
