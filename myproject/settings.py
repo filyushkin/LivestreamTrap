@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'huey.contrib.djhuey',
+    'huey.contrib.djhuey',  # myapp после djhuey
     'myapp',
 ]
 """
