@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h1 class="h4 mb-4">Загрузки</h1>
+
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>Задача (Имя канала)</th>
+          <th>Время начала стрима</th>
+          <th>Название стрима</th>
+          <th>Ссылка</th>
+          <th>Длительность стрима</th>
+          <th>Действие</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if records %}
+          {% for r in records %}
+            <tr>
+              <td>{{ r.channel_title }}</td>
+              <td>{{ r.started_at|date:"Y-m-d H:i" }}</td>
+              <td>{{ r.title }}</td>
+              <td><a href="{{ r.mp3_url }}" target="_blank">MP3</a></td>
+              <td>{{ r.duration_str }}</td>
+              <td>
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="record_id" value="{{ r.id }}">
+                  <button class="btn btn-sm btn-outline-danger" name="action" value="delete">Удалить</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="6" class="text-muted">Записей пока нет.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

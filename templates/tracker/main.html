@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h1 class="h4 mb-4">Главная</h1>
+
+  <form method="post" class="row g-2 align-items-end mb-4">
+    {% csrf_token %}
+    <div class="col-md-4">
+      <label class="form-label">Введите псевдоним канала:</label>
+      {{ form.handle }}
+      <div class="form-text">От 3 до 30 символов. Без «@».</div>
+    </div>
+    <div class="col-md-8">
+      <button name="action" value="check" class="btn btn-primary me-2">Проверить канал</button>
+      <button name="action" value="reset" class="btn btn-outline-secondary">Сброс</button>
+    </div>
+  </form>
+
+  <h2 class="h5 mb-3">Каналы</h2>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>Имя канала</th>
+          <th>Псевдоним</th>
+          <th>Ссылка</th>
+          <th>Страна</th>
+          <th>Дата создания канала</th>
+          <th>Количество подписчиков</th>
+          <th>Количество текущих стримов</th>
+          <th>Задача поставлена?</th>
+          <th>Действие</th>
+        </tr>
+      </thead>
+      <tbody>
+          {% if channels %}
+            {% for ch in channels %}
+              <tr>
+                <td>{{ ch.title }}</td>
+                <td>{{ ch.handle }}</td>
+                <td><a href="{{ ch.url }}" target="_blank">{{ ch.url }}</a></td>
+                <td>{{ ch.country|default:"—" }}</td>
+                <td>{{ ch.published_at|date:"Y-m-d" }}</td>
+                <td>{{ ch.subscribers|default:"—" }}</td>
+                <td>
+                  {% if ch.live_count > 0 %}
+                    <span class="fw-bold px-2 py-1" style="background:#f3e6ff; color:#6f42c1; border-radius:4px;">
+                      {{ ch.live_count }}
+                    </span>
+                  {% else %}
+                    0
+                  {% endif %}
+                </td>
+                <td>
+                  {% if ch.has_task %}
+                    <span class="text-success fw-semibold">Да</span>
+                  {% else %}
+                    <span class="text-danger fw-semibold">Нет</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <form method="post" action="">
+                    {% csrf_token %}
+                    <input type="hidden" name="handle" value="{{ ch.handle }}">
+                    <button class="btn btn-sm btn-outline-danger me-2" name="action" value="delete">Удалить канал</button>
+                    <button class="btn btn-sm btn-success" name="action" value="schedule">Поставить задачу</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr><td colspan="9" class="text-muted">Список пуст. Добавьте канал через форму выше.</td></tr>
+          {% endif %}
+        </tbody>
+    </table>
+  </div>
+{% endblock %}

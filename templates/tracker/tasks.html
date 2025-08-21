@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h1 class="h4 mb-4">Задачи</h1>
+
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>Имя канала</th>
+          <th>Псевдоним</th>
+          <th>Время постановки задачи</th>
+          <th>Идёт ли запись?</th>
+          <th>Количество записанных стримов</th>
+          <th>Действие</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if tasks %}
+          {% for t in tasks %}
+            <tr>
+              <td>{{ t.channel_title }}</td>
+              <td>{{ t.handle }}</td>
+              <td>{{ t.created_at|date:"Y-m-d H:i" }}</td>
+              <td>
+                {% if t.is_recording %}
+                  <span class="text-success fw-semibold">Да</span>
+                {% else %}
+                  <span class="text-danger fw-semibold">Нет</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if t.record_count > 0 %}
+                  <span class="fw-bold px-2 py-1 bg-warning-subtle"> {{ t.record_count }} </span>
+                {% else %}
+                  0
+                {% endif %}
+              </td>
+              <td>
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="task_id" value="{{ t.id }}">
+                  <button class="btn btn-sm btn-outline-danger" name="action" value="unschedule">Снять задачу</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="6" class="text-muted">Задач пока нет.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
