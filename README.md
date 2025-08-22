@@ -2,7 +2,9 @@
 
 ## 1) Docker Desktop terminal
 
-`docker run --name redis -p 6379:6379 redis`
+`docker run -d --name redis -p 6379:6379 redis`
+
+(опционально: `docker run --name redis -p 6379:6379 redis`)
 
 ## 2) PyCharm terminal 1
 
