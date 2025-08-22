@@ -6,6 +6,9 @@ from datetime import datetime
 from urllib.parse import quote, unquote
 import time
 
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+
 logger = logging.getLogger(__name__)
 
 
@@ -74,6 +77,46 @@ def get_channel_info(handle):
     except Exception as e:
         logger.error(f"Ошибка получения информации о канале {handle}: {e}")
         return None
+
+
+SELENIUM_REMOTE_URL = "http://localhost:4444/wd/hub"  # адрес контейнера
+
+def get_current_streams_selenium(handle):
+    """
+    Проверяет текущие активные стримы на канале через удалённый Selenium.
+    Возвращает список URL активных стримов
+    """
+    try:
+        normalized_handle = normalize_handle(handle)
+        url = f"https://www.youtube.com/@{normalized_handle}/streams"
+
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")  # headless в контейнере
+        chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+
+        # Подключение к удалённому Selenium
+        driver = webdriver.Remote(
+            command_executor=SELENIUM_REMOTE_URL,
+            options=chrome_options
+        )
+
+        driver.set_page_load_timeout(15)
+        driver.get(url)
+
+        page_source = driver.page_source.lower()
+        driver.save_screenshot('debug.png')
+        driver.quit()
+
+        if 'live now' in page_source or 'прямой эфир' in page_source:
+            return [f"https://www.youtube.com/@{normalized_handle}/live"]
+
+        return []
+
+    except Exception as e:
+        logger.error(f"Ошибка проверки стримов канала {handle}: {e}")
+        return []# адрес контейнера
 
 
 def get_current_streams(handle):

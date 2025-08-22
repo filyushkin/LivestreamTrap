@@ -148,8 +148,8 @@ CELERY_TIMEZONE = 'Europe/Moscow'
 from datetime import timedelta
 CELERY_BEAT_SCHEDULE = {
     'update-live-counts-every-150s': {
-        'task': 'tracker.tasks.update_live_counts',
-        'schedule': timedelta(seconds=150),
+        'task': 'tracker.tasks.update_channels_info',
+        'schedule': timedelta(seconds=10),
     },
     'monitor-channels-every-300s': {
         'task': 'tracker.tasks.monitor_channels',

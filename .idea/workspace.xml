@@ -5,29 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e77a5866-b3bf-41ba-ad9a-c85de3cd2714" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/LivestreamTrap/celery.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/debug_db.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tracker/management/commands/check_channels.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tracker/recording.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tracker/tasks.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tracker/urls.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tracker/utils.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tracker/youtube_api.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/LivestreamTrap.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/LivestreamTrap.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LivestreamTrap/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/LivestreamTrap/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/LivestreamTrap/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/LivestreamTrap/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LivestreamTrap/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/LivestreamTrap/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/celerybeat-schedule.bak" beforeDir="false" afterPath="$PROJECT_DIR$/celerybeat-schedule.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/celerybeat-schedule.dat" beforeDir="false" afterPath="$PROJECT_DIR$/celerybeat-schedule.dat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/celerybeat-schedule.dir" beforeDir="false" afterPath="$PROJECT_DIR$/celerybeat-schedule.dir" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/db.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/db.sqlite3" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/tracker/main.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/tracker/main.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/tracker/tasks.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/tracker/tasks.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tracker/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/tracker/admin.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tracker/migrations/0001_initial.py" beforeDir="false" afterPath="$PROJECT_DIR$/tracker/migrations/0001_initial.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tracker/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/tracker/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tracker/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/tracker/views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -61,7 +44,7 @@
   &quot;associatedIndex&quot;: 3
 }</component>
   <component name="ProjectId" id="31bDzG5C3Yo2pWrorNLxNDyX1Kk" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+  <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
   </component>
   <component name="ProjectViewState">
@@ -73,6 +56,7 @@
     "DefaultHtmlFileTemplate": "HTML File",
     "RunOnceActivity.OpenDjangoStructureViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "dart.analysis.tool.window.visible": "false",
     "django.template.preview.state": "SHOW_EDITOR_AND_PREVIEW",
     "git-widget-placeholder": "main",
     "last_opened_file_path": "C:/Users/Lenovo/PycharmProjects/LivestreamTrap",
