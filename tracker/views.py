@@ -1,164 +1,155 @@
-from django.shortcuts import render
-
-# Create your views here.
-
-from django.conf import settings
-from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 from django.db import transaction
-from .forms import HandleForm
+from django.core.exceptions import ValidationError
+
 from .models import Channel, Task, StreamRecord
-from pathlib import Path
-import os
+from .youtube_api import get_channel_info, get_current_streams
 
-# --- Вспомогательное: заглушка "проверки" существования канала ---
-# На следующем шаге заменим на реальную проверку (YouTube Data API / ytarchive).
-def _fake_fetch_channel_info(handle: str) -> dict | None:
-    """
-    Возвращает словарь с данными о канале, если 'нашли'.
-    Здесь всегда 'находим' — для обвязки БД и UI.
-    """
-    return {
-        "title": handle,  # временно ставим handle как title
-        "url": f"https://www.youtube.com/@{handle}",
-        "country": "",
-        "published_at": None,
-        "subscribers": None,
-        "live_count": 0,
-    }
 
-def main_view(request):
-    form = HandleForm(request.POST or None)
+def main(request):
+    channels = Channel.objects.all().order_by('-created_at')
 
     if request.method == 'POST':
-        action = request.POST.get('action')
+        handle = request.POST.get('channel_handle', '').strip()
 
-        if action == 'reset':
-            messages.info(request, 'Поле очищено.')
-            return redirect('main')
+        # Нормализация handle
+        if handle.startswith('@'):
+            handle = handle[1:]
+        handle = handle.lower()
 
-        if action == 'check':
-            if form.is_valid():
-                handle = form.cleaned_data['handle']
-                # Уже есть в БД?
-                if Channel.objects.filter(handle=handle).exists():
-                    messages.warning(request, 'Канал с указанным псевдонимом был занесён в базу данных ранее')
-                    return redirect('main')
-
-                info = _fake_fetch_channel_info(handle)
-                if info is None:
-                    messages.error(request, 'Канала с указанным псевдонимом не существует')
-                    return redirect('main')
-
-                Channel.objects.create(
-                    title=info["title"],
-                    handle=handle,
-                    url=info["url"],
-                    country=info["country"],
-                    published_at=info["published_at"],
-                    subscribers=info["subscribers"],
-                    live_count=info["live_count"],
-                    has_task=False,
-                )
-                messages.success(request, 'Канал с указанным псевдонимом найден, информация о нём занесена в базу данных')
-                return redirect('main')
-            else:
-                messages.error(request, 'Проверьте формат псевдонима.')
+        if 'check_channel' in request.POST:
+            if not 3 <= len(handle) <= 30:
+                messages.error(request, "Псевдоним должен быть от 3 до 30 символов")
                 return redirect('main')
 
-        if action == 'delete':
-            handle = request.POST.get('handle', '').strip().lower()
-            ch = get_object_or_404(Channel, handle=handle)
-            ch.delete()
-            messages.info(request, f'Канал @{handle} удалён.')
-            return redirect('main')
-
-        if action == 'schedule':
-            handle = request.POST.get('handle', '').strip().lower()
-            ch = get_object_or_404(Channel, handle=handle)
-            if ch.has_task:
-                messages.warning(request, f'Для @{handle} задача уже поставлена.')
+            # ПРЯМАЯ ПРОВЕРКА без зависимостей от ограничений базы
+            existing_channels = Channel.objects.filter(handle__iexact=handle)
+            if existing_channels.exists():
+                messages.warning(request, "Канал с указанным псевдонимом был занесён в базу данных ранее")
                 return redirect('main')
-            with transaction.atomic():
-                Task.objects.create(channel=ch)
-                ch.has_task = True
-                ch.save(update_fields=['has_task'])
-            messages.success(request, f'Для @{handle} задача поставлена.')
+
+            # Проверяем существование канала на YouTube
+            channel_info = get_channel_info(handle)
+            if not channel_info:
+                messages.error(request, "Канала с указанным псевдонимом не существует")
+                return redirect('main')
+
+            # Создаем новый канал
+            try:
+                with transaction.atomic():
+                    channel = Channel(
+                        handle=handle,
+                        name=channel_info.get('name', handle) or handle,  # Защита от None
+                        country=channel_info.get('country', '') or '',  # Гарантированно строка
+                        subscribers_count=channel_info.get('subscribers_count', 0),
+                        channel_created_date=channel_info.get('created_date')
+                    )
+                    channel.full_clean()  # Валидация
+                    channel.save()
+                    messages.success(request,
+                                     "Канал с указанным псевдонимом найден, информация о нём занесена в базу данных")
+            except ValidationError as e:
+                messages.warning(request, f"Ошибка валидации: {e}")
+            except Exception as e:
+                messages.error(request, f"Ошибка при создании канала: {e}")
+
             return redirect('main')
 
-    channels = Channel.objects.order_by('-created_at')
+        elif 'delete_channel' in request.POST:
+            channel_id = request.POST.get('channel_id')
+            try:
+                channel = Channel.objects.get(id=channel_id)
+                channel_name = channel.handle
+                channel.delete()
+                messages.info(request, f"Канал @{channel_name} удален")
+            except Channel.DoesNotExist:
+                messages.error(request, "Канал не найден")
+            return redirect('main')
+
+        elif 'create_task' in request.POST:
+            channel_id = request.POST.get('channel_id')
+            try:
+                channel = Channel.objects.get(id=channel_id)
+
+                if not Task.objects.filter(channel=channel, is_active=True).exists():
+                    Task.objects.create(channel=channel)
+                    messages.success(request, f"Задача для @{channel.handle} создана")
+                else:
+                    messages.warning(request, f"Для @{channel.handle} уже есть активная задача")
+            except Channel.DoesNotExist:
+                messages.error(request, "Канал не найден")
+            return redirect('main')
+
     return render(request, 'tracker/main.html', {
-        'current_page': 'main',
-        'form': form,
         'channels': channels,
+        'current_page': 'main'
     })
 
-def tasks_view(request):
-    if request.method == 'POST':
-        action = request.POST.get('action')
-        if action == 'unschedule':
-            task_id = request.POST.get('task_id')
-            task = get_object_or_404(Task, id=task_id)
-            channel = task.channel
-            with transaction.atomic():
-                task.delete()
-                channel.has_task = False
-                channel.save(update_fields=['has_task'])
-            messages.info(request, f'Задача для @{channel.handle} снята.')
-            return redirect('tasks')
 
-    tasks = Task.objects.select_related('channel').order_by('-created_at')
-    # Нужен формат для шаблона
-    view_tasks = []
-    for t in tasks:
-        view_tasks.append({
-            'id': t.id,
-            'channel_title': t.channel.title,
-            'handle': t.channel.handle,
-            'created_at': t.created_at,
-            'is_recording': t.is_recording,
-            'record_count': t.record_count,  # в дальнейшем будем синхронизировать с фактом
-        })
+def tasks(request):
+    tasks = Task.objects.select_related('channel').filter(is_active=True).order_by('-created_at')
     return render(request, 'tracker/tasks.html', {
-        'current_page': 'tasks',
-        'tasks': view_tasks,
+        'tasks': tasks,
+        'current_page': 'tasks'
     })
 
-def downloads_view(request):
-    if request.method == 'POST':
-        action = request.POST.get('action')
-        if action == 'delete':
-            record_id = request.POST.get('record_id')
-            rec = get_object_or_404(StreamRecord, id=record_id)
-            # Удаляем файлы, если они есть физически
-            media_root = Path(settings.MEDIA_ROOT)
-            for rel in [rec.ts_relpath, rec.mp3_relpath]:
-                if rel:
-                    f = media_root / rel
-                    try:
-                        if f.exists():
-                            os.remove(f)
-                    except Exception:
-                        pass
-            rec.delete()
-            messages.info(request, 'Запись удалена.')
-            return redirect('downloads')
 
-    records = StreamRecord.objects.select_related('channel', 'task').order_by('-created_at')
-    view_records = []
-    for r in records:
-        mp3_url = None
-        if r.mp3_relpath:
-            mp3_url = settings.MEDIA_URL + r.mp3_relpath
-        view_records.append({
-            'id': r.id,
-            'channel_title': r.channel.title,
-            'started_at': r.started_at,
-            'title': r.title,
-            'mp3_url': mp3_url,
-            'duration_str': r.duration_str,
-        })
+def downloads(request):
+    recordings = StreamRecord.objects.select_related('channel', 'task').all().order_by('-created_at')
     return render(request, 'tracker/downloads.html', {
-        'current_page': 'downloads',
-        'records': view_records,
+        'recordings': recordings,
+        'current_page': 'downloads'
+    })
+
+
+@require_POST
+def delete_task(request, task_id):
+    try:
+        task = Task.objects.get(id=task_id)
+        task.is_active = False
+        task.save()
+        messages.info(request, f"Задача для @{task.channel.handle} удалена")
+    except Task.DoesNotExist:
+        messages.error(request, "Задача не найдена")
+    return redirect('tasks')
+
+
+@require_POST
+def delete_recording(request, recording_id):
+    try:
+        recording = StreamRecord.objects.get(id=recording_id)
+
+        # Удаляем файлы
+        import os
+        from django.conf import settings
+
+        if recording.ts_relpath:
+            ts_path = settings.MEDIA_ROOT / recording.ts_relpath
+            if os.path.exists(ts_path):
+                os.remove(ts_path)
+
+        if recording.mp3_relpath:
+            mp3_path = settings.MEDIA_ROOT / recording.mp3_relpath
+            if os.path.exists(mp3_path):
+                os.remove(mp3_path)
+
+        recording.delete()
+        messages.info(request, "Запись удалена")
+    except StreamRecord.DoesNotExist:
+        messages.error(request, "Запись не найдена")
+    return redirect('downloads')
+
+
+def debug_database(request):
+    """Страница отладки - показывает что действительно в базе"""
+    channels = Channel.objects.all()
+    channel_list = list(channels.values('id', 'handle', 'name'))
+
+    return JsonResponse({
+        'channels_count': channels.count(),
+        'channels': channel_list,
+        'all_handles': list(channels.values_list('handle', flat=True))
     })

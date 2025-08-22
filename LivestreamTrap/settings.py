@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'tracker',
 ]
 
@@ -119,9 +121,40 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [ BASE_DIR / 'static' ]
 MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+STREAMS_DIR = os.path.join(MEDIA_ROOT, 'streams') # Временные .ts файлы во время записи
+RECORDINGS_DIR = os.path.join(MEDIA_ROOT, 'recordings') # Финальные .mp3 файлы после конвертации
+
+os.makedirs(STREAMS_DIR, exist_ok=True)
+os.makedirs(RECORDINGS_DIR, exist_ok=True)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# --- Redis/Celery ---
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+# CELERY_TIMEZONE = 'UTC' # Подумать про настройку времени согласно времени локальной машины
+CELERY_TIMEZONE = 'Europe/Moscow'
+
+# Периодические задачи Celery Beat
+from datetime import timedelta
+CELERY_BEAT_SCHEDULE = {
+    'update-live-counts-every-150s': {
+        'task': 'tracker.tasks.update_live_counts',
+        'schedule': timedelta(seconds=150),
+    },
+    'monitor-channels-every-300s': {
+        'task': 'tracker.tasks.monitor_channels',
+        'schedule': timedelta(seconds=300),
+    },
+}
+
+USE_THOUSAND_SEPARATOR = True

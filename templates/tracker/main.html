@@ -1,76 +1,110 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
 {% block content %}
-  <h1 class="h4 mb-4">Главная</h1>
+<h2 class="mb-4">Мониторинг YouTube-каналов</h2>
 
-  <form method="post" class="row g-2 align-items-end mb-4">
+<!-- Форма добавления канала -->
+<form method="post" class="mb-4">
     {% csrf_token %}
-    <div class="col-md-4">
-      <label class="form-label">Введите псевдоним канала:</label>
-      {{ form.handle }}
-      <div class="form-text">От 3 до 30 символов. Без «@».</div>
+    <div class="row align-items-end">
+        <div class="col-md-6">
+            <label class="form-label">Введите псевдоним канала:</label>
+            <input type="text" name="channel_handle" class="form-control" 
+                   placeholder="username" minlength="3" maxlength="30" required
+                   value="{{ request.POST.channel_handle|default:'' }}">
+        </div>
+        <div class="col-md-3">
+            <button type="submit" name="check_channel" class="btn btn-primary w-100">Проверить канал</button>
+        </div>
+        <div class="col-md-3">
+            <button type="reset" class="btn btn-secondary w-100">Сброс</button>
+        </div>
     </div>
-    <div class="col-md-8">
-      <button name="action" value="check" class="btn btn-primary me-2">Проверить канал</button>
-      <button name="action" value="reset" class="btn btn-outline-secondary">Сброс</button>
-    </div>
-  </form>
+</form>
 
-  <h2 class="h5 mb-3">Каналы</h2>
-  <div class="table-responsive">
-    <table class="table table-sm align-middle">
-      <thead>
-        <tr>
-          <th>Имя канала</th>
-          <th>Псевдоним</th>
-          <th>Ссылка</th>
-          <th>Страна</th>
-          <th>Дата создания канала</th>
-          <th>Количество подписчиков</th>
-          <th>Количество текущих стримов</th>
-          <th>Задача поставлена?</th>
-          <th>Действие</th>
-        </tr>
-      </thead>
-      <tbody>
-          {% if channels %}
-            {% for ch in channels %}
-              <tr>
-                <td>{{ ch.title }}</td>
-                <td>{{ ch.handle }}</td>
-                <td><a href="{{ ch.url }}" target="_blank">{{ ch.url }}</a></td>
-                <td>{{ ch.country|default:"—" }}</td>
-                <td>{{ ch.published_at|date:"Y-m-d" }}</td>
-                <td>{{ ch.subscribers|default:"—" }}</td>
+<!-- Таблица каналов -->
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Имя канала</th>
+                <th>Псевдоним</th>
+                <th>Ссылка</th>
+                <th>Страна</th>
+                <th>Дата создания</th>
+                <th>Подписчики</th>
+                <th>Текущие стримы</th>
+                <th>Задача поставлена?</th>
+                <th>Действие</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for channel in channels %}
+            <tr>
+                <td>{{ channel.name|default:"Не указано" }}</td>
+                <td>@{{ channel.handle }}</td>
                 <td>
-                  {% if ch.live_count > 0 %}
-                    <span class="fw-bold px-2 py-1" style="background:#f3e6ff; color:#6f42c1; border-radius:4px;">
-                      {{ ch.live_count }}
-                    </span>
-                  {% else %}
-                    0
-                  {% endif %}
+                    <a href="https://www.youtube.com/@{{ channel.handle }}" 
+                       target="_blank" class="btn btn-sm btn-outline-primary">
+                        Перейти
+                    </a>
+                </td>
+                <td>{{ channel.country|default:"-" }}</td>
+                <td>{{ channel.channel_created_date|date:"d.m.Y"|default:"-" }}</td>
+                <td>{{ channel.subscribers_count|default:"0"|intcomma }}</td>
+                <td>
+                    {% if channel.current_streams_count > 0 %}
+                        <span class="badge bg-purple">{{ channel.current_streams_count }}</span>
+                    {% else %}
+                        <span class="badge bg-secondary">0</span>
+                    {% endif %}
                 </td>
                 <td>
-                  {% if ch.has_task %}
-                    <span class="text-success fw-semibold">Да</span>
-                  {% else %}
-                    <span class="text-danger fw-semibold">Нет</span>
-                  {% endif %}
+                    {% if channel.has_active_task %}
+                        <span class="badge bg-success">Да</span>
+                    {% else %}
+                        <span class="badge bg-danger">Нет</span>
+                    {% endif %}
                 </td>
                 <td>
-                  <form method="post" action="">
-                    {% csrf_token %}
-                    <input type="hidden" name="handle" value="{{ ch.handle }}">
-                    <button class="btn btn-sm btn-outline-danger me-2" name="action" value="delete">Удалить канал</button>
-                    <button class="btn btn-sm btn-success" name="action" value="schedule">Поставить задачу</button>
-                  </form>
+                    <div class="btn-group btn-group-sm">
+                        <form method="post" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="channel_id" value="{{ channel.id }}">
+                            <button type="submit" name="delete_channel" 
+                                    class="btn btn-danger" onclick="return confirm('Удалить канал?')">
+                                Удалить
+                            </button>
+                        </form>
+                        <form method="post" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="channel_id" value="{{ channel.id }}">
+                            <button type="submit" name="create_task" 
+                                    class="btn btn-success" {% if channel.has_active_task %}disabled{% endif %}>
+                                Поставить задачу
+                            </button>
+                        </form>
+                    </div>
                 </td>
-              </tr>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="9" class="text-center py-4">
+                    <em>Нет добавленных каналов. Добавьте первый канал выше.</em>
+                </td>
+            </tr>
             {% endfor %}
-          {% else %}
-            <tr><td colspan="9" class="text-muted">Список пуст. Добавьте канал через форму выше.</td></tr>
-          {% endif %}
         </tbody>
     </table>
-  </div>
+</div>
+
+<!-- Автообновление каждые 2.5 минуты -->
+<script>
+// Автообновление страницы каждые 150 секунд (2.5 минуты)
+setTimeout(function() {
+    window.location.reload();
+}, 150000);
+</script>
 {% endblock %}

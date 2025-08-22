@@ -1,53 +1,59 @@
-{% extends 'base.html' %}
-{% block content %}
-  <h1 class="h4 mb-4">Задачи</h1>
+{% extends "base.html" %}
+{% load static %}
 
-  <div class="table-responsive">
-    <table class="table table-sm align-middle">
-      <thead>
-        <tr>
-          <th>Имя канала</th>
-          <th>Псевдоним</th>
-          <th>Время постановки задачи</th>
-          <th>Идёт ли запись?</th>
-          <th>Количество записанных стримов</th>
-          <th>Действие</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% if tasks %}
-          {% for t in tasks %}
+{% block content %}
+<h2 class="mb-4">Активные задачи мониторинга</h2>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
             <tr>
-              <td>{{ t.channel_title }}</td>
-              <td>{{ t.handle }}</td>
-              <td>{{ t.created_at|date:"Y-m-d H:i" }}</td>
-              <td>
-                {% if t.is_recording %}
-                  <span class="text-success fw-semibold">Да</span>
-                {% else %}
-                  <span class="text-danger fw-semibold">Нет</span>
-                {% endif %}
-              </td>
-              <td>
-                {% if t.record_count > 0 %}
-                  <span class="fw-bold px-2 py-1 bg-warning-subtle"> {{ t.record_count }} </span>
-                {% else %}
-                  0
-                {% endif %}
-              </td>
-              <td>
-                <form method="post">
-                  {% csrf_token %}
-                  <input type="hidden" name="task_id" value="{{ t.id }}">
-                  <button class="btn btn-sm btn-outline-danger" name="action" value="unschedule">Снять задачу</button>
-                </form>
-              </td>
+                <th>Имя канала</th>
+                <th>Псевдоним</th>
+                <th>Время постановки задачи</th>
+                <th>Идёт ли запись?</th>
+                <th>Количество записанных стримов</th>
+                <th>Действие</th>
             </tr>
-          {% endfor %}
-        {% else %}
-          <tr><td colspan="6" class="text-muted">Задач пока нет.</td></tr>
-        {% endif %}
-      </tbody>
+        </thead>
+        <tbody>
+            {% for task in tasks %}
+            <tr>
+                <td>{{ task.channel.name|default:"Не указано" }}</td>
+                <td>@{{ task.channel.handle }}</td>
+                <td>{{ task.created_at|date:"d.m.Y H:i" }}</td>
+                <td>
+                    {% if task.is_recording %}
+                        <span class="badge bg-success">Да</span>
+                    {% else %}
+                        <span class="badge bg-danger">Нет</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if task.record_count > 0 %}
+                        <span class="badge bg-warning text-dark fw-bold">{{ task.record_count }}</span>
+                    {% else %}
+                        <span class="badge bg-secondary">0</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="post" action="{% url 'delete_task' task.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm" 
+                                onclick="return confirm('Снять задачу для @{{ task.channel.handle }}?')">
+                            Снять задачу
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center py-4">
+                    <em>Нет активных задач. Добавьте задачи на главной странице.</em>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
     </table>
-  </div>
+</div>
 {% endblock %}

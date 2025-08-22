@@ -1,57 +1,73 @@
 from django.db import models
+from django.urls import reverse
+from django.core.exceptions import ValidationError
+import re
 
-# Create your models here.
 
-from django.db import models
-
-class TimeStampedModel(models.Model):
+class Channel(models.Model):
+    name = models.CharField(max_length=100, blank=True)
+    handle = models.CharField(max_length=30)  # Без unique=True
+    country = models.CharField(max_length=50, blank=True, null=True)  # Добавили null=True
+    channel_created_date = models.DateField(null=True, blank=True)
+    subscribers_count = models.IntegerField(default=0)
+    current_streams_count = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    class Meta:
-        abstract = True
 
-class Channel(TimeStampedModel):
-    title = models.CharField(max_length=255, help_text="Имя канала на YouTube")
-    handle = models.CharField(max_length=30, unique=True, help_text="Псевдоним (handle) без @")
-    url = models.URLField(help_text="Ссылка на канал")
-    country = models.CharField(max_length=64, blank=True)
-    published_at = models.DateField(null=True, blank=True)
-    subscribers = models.PositiveIntegerField(null=True, blank=True)
-    live_count = models.PositiveIntegerField(default=0)
-    has_task = models.BooleanField(default=False)
+    def clean(self):
+        """Валидация handle на уровне модели"""
+        import re
+        if not re.match(r'^[a-zA-Z0-9_]{3,30}$', self.handle):
+            raise ValidationError('Псевдоним может содержать только буквы, цифры и подчеркивания (3-30 символов)')
 
-    def __str__(self) -> str:
-        return f"{self.title} (@{self.handle})"
+        # Проверяем уникальность handle (регистронезависимо)
+        existing = Channel.objects.filter(handle__iexact=self.handle)
+        if self.pk:
+            existing = existing.exclude(pk=self.pk)
+        if existing.exists():
+            raise ValidationError('Канал с таким псевдонимом уже существует')
 
-class Task(TimeStampedModel):
-    # Одна активная задача на канал
-    channel = models.OneToOneField(Channel, on_delete=models.CASCADE, related_name='task')
-    is_recording = models.BooleanField(default=False)
-    record_count = models.PositiveIntegerField(default=0)
-
-    def __str__(self) -> str:
-        return f"Задача для @{self.channel.handle}"
-
-class StreamRecord(TimeStampedModel):
-    # Запись завершённого стрима
-    channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='records')
-    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='records')
-    title = models.CharField(max_length=255)
-    started_at = models.DateTimeField()
-    duration_sec = models.PositiveIntegerField(default=0)
-
-    # Сохраняем ОТНОСИТЕЛЬНЫЕ пути внутри MEDIA_ROOT
-    ts_relpath = models.CharField(max_length=500, blank=True)
-    mp3_relpath = models.CharField(max_length=500, blank=True)
-
-    def __str__(self) -> str:
-        return f"{self.title} (@{self.channel.handle})"
+    def save(self, *args, **kwargs):
+        self.full_clean()  # Вызываем валидацию
+        self.handle = self.handle.lower()  # Приводим к нижнему регистру
+        super().save(*args, **kwargs)
 
     @property
-    def duration_str(self) -> str:
-        s = int(self.duration_sec or 0)
-        h, r = divmod(s, 3600)
-        m, s = divmod(r, 60)
-        if h:
-            return f"{h:d}:{m:02d}:{s:02d}"
-        return f"{m:d}:{s:02d}"
+    def has_active_task(self):
+        return self.task_set.filter(is_active=True).exists()
+
+    def __str__(self):
+        return f"@{self.handle}"
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['handle']),
+        ]
+
+
+class Task(models.Model):
+    channel = models.ForeignKey(Channel, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+    is_recording = models.BooleanField(default=False)
+    record_count = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"Задача для @{self.channel.handle}"
+
+
+class StreamRecord(models.Model):
+    channel = models.ForeignKey(Channel, on_delete=models.CASCADE)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    title = models.CharField(max_length=200)
+    stream_url = models.URLField(default="")
+    started_at = models.DateTimeField()
+    duration_sec = models.IntegerField(default=0)
+    ts_relpath = models.CharField(max_length=200, blank=True)
+    mp3_relpath = models.CharField(max_length=200, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def get_mp3_url(self):
+        return f"/media/{self.mp3_relpath}" if self.mp3_relpath else ""
+
+    def __str__(self):
+        return self.title
