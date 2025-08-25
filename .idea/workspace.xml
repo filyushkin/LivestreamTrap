@@ -5,18 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e77a5866-b3bf-41ba-ad9a-c85de3cd2714" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.gitignore.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LivestreamTrap/local_settings.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tracker/management/commands/test_youtube.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tracker/youtube_service.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore.py" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LivestreamTrap/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/LivestreamTrap/settings.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/celerybeat-schedule.dat" beforeDir="false" afterPath="$PROJECT_DIR$/celerybeat-schedule.dat" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/db.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/db.sqlite3" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/tracker/tasks.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/tracker/tasks.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tracker/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/tracker/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tracker/tasks.py" beforeDir="false" afterPath="$PROJECT_DIR$/tracker/tasks.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tracker/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/tracker/views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -124,7 +115,7 @@
       <workItem from="1755797509999" duration="2397000" />
       <workItem from="1755851900355" duration="14098000" />
       <workItem from="1756121125370" duration="301000" />
-      <workItem from="1756121646569" duration="3603000" />
+      <workItem from="1756121646569" duration="4541000" />
     </task>
     <servers />
   </component>

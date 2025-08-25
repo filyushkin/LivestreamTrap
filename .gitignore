@@ -8,7 +8,6 @@ __pycache__/
 .env
 .env.local
 .env.prod
-LivestreamTrap/local_settings.py
 
 # Virtual environment
 venv/
