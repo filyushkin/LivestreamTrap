@@ -1,2 +1,0 @@
-YOUTUBE_API_KEY = 'AIzaSyB4-ZfQTtzmC1HOKaly_GTk1MDdTzoDrYM'
-DEBUG = True
