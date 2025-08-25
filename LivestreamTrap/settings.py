@@ -13,8 +13,13 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 
+from dotenv import load_dotenv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Загружаем переменные из .env файла
+load_dotenv()
 
 
 # Quick-start development settings - unsuitable for production
@@ -158,3 +163,6 @@ CELERY_BEAT_SCHEDULE = {
 }
 
 USE_THOUSAND_SEPARATOR = True
+
+# YouTube settings
+YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")

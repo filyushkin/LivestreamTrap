@@ -8,6 +8,7 @@ dependencies = [
     "celery>=5.5.3",
     "django>=5.2.5",
     "django-celery-beat>=2.8.1",
+    "load-dotenv>=0.1.0",
     "pillow>=11.3.0",
     "redis>=6.4.0",
     "requests>=2.32.5",
