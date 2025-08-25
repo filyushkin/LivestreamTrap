@@ -108,11 +108,11 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+# TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-USE_TZ = True
+# USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
@@ -158,3 +158,32 @@ CELERY_BEAT_SCHEDULE = {
 }
 
 USE_THOUSAND_SEPARATOR = True
+
+# Добавляем настройки времени:
+USE_TZ = True
+TIME_ZONE = 'Europe/Moscow'  # Или иная временная зона
+
+# Шаблонные теги
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'templates'],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+            'libraries': {
+                'staticfiles': 'django.templatetags.static',
+            },
+        },
+    },
+]
+
+try:
+    from .local_settings import *
+except ImportError:
+    pass

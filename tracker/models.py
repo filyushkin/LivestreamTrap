@@ -6,20 +6,21 @@ import re
 
 class Channel(models.Model):
     name = models.CharField(max_length=100, blank=True)
-    handle = models.CharField(max_length=30)  # Без unique=True
-    country = models.CharField(max_length=50, blank=True, null=True)  # Добавили null=True
+    handle = models.CharField(max_length=30)
+    country = models.CharField(max_length=50, blank=True, null=True)
     channel_created_date = models.DateField(null=True, blank=True)
     subscribers_count = models.IntegerField(default=0)
     current_streams_count = models.IntegerField(default=0)
+    youtube_channel_id = models.CharField(max_length=50, blank=True, unique=True)
+    description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def clean(self):
         """Валидация handle на уровне модели"""
-        import re
         if not re.match(r'^[a-zA-Z0-9_]{3,30}$', self.handle):
             raise ValidationError('Псевдоним может содержать только буквы, цифры и подчеркивания (3-30 символов)')
 
-        # Проверяем уникальность handle (регистронезависимо)
+        # Проверяем уникальность handle
         existing = Channel.objects.filter(handle__iexact=self.handle)
         if self.pk:
             existing = existing.exclude(pk=self.pk)
@@ -27,8 +28,10 @@ class Channel(models.Model):
             raise ValidationError('Канал с таким псевдонимом уже существует')
 
     def save(self, *args, **kwargs):
-        self.full_clean()  # Вызываем валидацию
-        self.handle = self.handle.lower()  # Приводим к нижнему регистру
+        # При сохранении убедимся, что youtube_channel_id есть
+        if not self.youtube_channel_id and self.handle:
+            # Можно добавить логику для получения ID при сохранении
+            pass
         super().save(*args, **kwargs)
 
     @property

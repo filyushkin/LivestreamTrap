@@ -16,6 +16,7 @@ from .youtube_api import get_channel_info, get_current_streams
 
 logger = logging.getLogger(__name__)
 
+
 # Директории для файлов
 STREAMS_DIR = Path(settings.MEDIA_ROOT) / "streams"
 RECORDINGS_DIR = Path(settings.MEDIA_ROOT) / "recordings"
@@ -47,19 +48,20 @@ def update_channels_info():
 
     for channel in channels:
         try:
-            channel_info = get_channel_info(channel.handle)
-
-            if channel_info:
-                channel.name = channel_info.get('name', channel.name)
-                channel.country = channel_info.get('country', channel.country)
-                channel.subscribers_count = channel_info.get('subscribers_count', 0)
-
-                # Проверяем текущие стримы
-                current_streams = get_current_streams(channel.handle)
-                channel.current_streams_count = len(current_streams)
-
-                channel.save()
-                logger.info(f"Обновлена информация для канала {channel.handle}")
+            # Если у канала есть YouTube ID, используем его для точного поиска
+            if channel.youtube_channel_id:
+                service = get_youtube_service()
+                if service:
+                    current_streams = get_current_live_streams(service, channel.youtube_channel_id)
+                    channel.current_streams_count = current_streams
+                    channel.save(update_fields=['current_streams_count'])
+                    logger.info(f"Обновлено количество стримов для {channel.handle}: {current_streams}")
+            else:
+                # Если YouTube ID нет, получаем полную информацию
+                channel_info = get_channel_stats(channel.handle)
+                if channel_info:
+                    channel.current_streams_count = channel_info.get('current_streams_count', 0)
+                    channel.save(update_fields=['current_streams_count'])
 
         except Exception as e:
             logger.error(f"Ошибка при обновлении канала {channel.handle}: {str(e)}")

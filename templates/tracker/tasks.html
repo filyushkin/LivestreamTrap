@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load tz %}
 
 {% block content %}
 <h2 class="mb-4">Активные задачи мониторинга</h2>
@@ -21,7 +21,11 @@
             <tr>
                 <td>{{ task.channel.name|default:"Не указано" }}</td>
                 <td>@{{ task.channel.handle }}</td>
-                <td>{{ task.created_at|date:"d.m.Y H:i" }}</td>
+                <td>
+                    {% localtime on %}
+                    {{ task.created_at|date:"d.m.Y H:i" }}
+                    {% endlocaltime %}
+                </td>
                 <td>
                     {% if task.is_recording %}
                         <span class="badge bg-success">Да</span>

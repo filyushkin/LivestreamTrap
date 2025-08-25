@@ -4,9 +4,11 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.db import transaction
 from django.core.exceptions import ValidationError
+from django.utils.dateparse import parse_datetime
+from django.conf import settings
 
 from .models import Channel, Task, StreamRecord
-from .youtube_api import get_channel_info, get_current_streams
+from .youtube_service import get_channel_stats  # Измененный импорт
 
 
 def main(request):
@@ -25,29 +27,34 @@ def main(request):
                 messages.error(request, "Псевдоним должен быть от 3 до 30 символов")
                 return redirect('main')
 
-            # ПРЯМАЯ ПРОВЕРКА без зависимостей от ограничений базы
+            # Проверяем, существует ли уже канал
             existing_channels = Channel.objects.filter(handle__iexact=handle)
             if existing_channels.exists():
                 messages.warning(request, "Канал с указанным псевдонимом был занесён в базу данных ранее")
                 return redirect('main')
 
-            # Проверяем существование канала на YouTube
-            channel_info = get_channel_info(handle)
+            # Получаем данные через YouTube API
+            channel_info = get_channel_stats(handle)
             if not channel_info:
-                messages.error(request, "Канала с указанным псевдонимом не существует")
+                messages.error(request, "Канала с указанным псевдонимом не существует или недоступен")
                 return redirect('main')
 
             # Создаем новый канал
             try:
                 with transaction.atomic():
+                    published_at = parse_datetime(channel_info['published_at'])
+
                     channel = Channel(
                         handle=handle,
-                        name=channel_info.get('name', handle) or handle,  # Защита от None
-                        country=channel_info.get('country', '') or '',  # Гарантированно строка
-                        subscribers_count=channel_info.get('subscribers_count', 0),
-                        channel_created_date=channel_info.get('created_date')
+                        name=channel_info['name'],
+                        country=channel_info['country'],
+                        subscribers_count=channel_info['subscribers_count'],
+                        current_streams_count=channel_info['current_streams_count'],  # Сохраняем стримы
+                        channel_created_date=published_at.date() if published_at else None,
+                        youtube_channel_id=channel_info['channel_id'],  # Сохраняем YouTube ID
+                        description=channel_info['description']
                     )
-                    channel.full_clean()  # Валидация
+                    channel.full_clean()
                     channel.save()
                     messages.success(request,
                                      "Канал с указанным псевдонимом найден, информация о нём занесена в базу данных")
