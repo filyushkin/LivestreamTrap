@@ -1,0 +1,64 @@
+version: "3.8"
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: django_app
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+    environment:
+      - DEBUG=True
+    depends_on:
+      - redis
+
+  redis:
+    image: "redis:alpine"
+    container_name: redis_server
+    ports:
+      - "6379:6379"
+
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery-worker
+    volumes:
+      - .:/app
+    command: [ "celery", "-A", "LivestreamTrap", "worker", "-l", "info" ]
+    environment:
+      - DEBUG=True
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery-beat
+    volumes:
+      - .:/app
+    command: [ "celery", "-A", "LivestreamTrap", "beat", "-l", "info" ]
+    environment:
+      - DEBUG=True
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+
+  flower:
+    image: mher/flower:latest
+    container_name: flower
+    ports:
+      - "5555:5555"  # доступ к Flower по http://localhost:5555
+    environment:
+      - FLOWER_BROKER=redis://redis:6379/0
+    depends_on:
+      - redis
+
+volumes:
+  app-data:
