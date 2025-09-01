@@ -19,3 +19,19 @@
 ## 4) PyCharm terminal 3
 
 `python manage.py runserver`
+
+
+# Запуск проекта через Docker
+## Запуск
+```shell
+docker-compose up -d 
+```
+## Остановить
+```shell
+docker-compose down
+```
+
+## Перезапустить
+```shell
+docker-compose restart
+```
